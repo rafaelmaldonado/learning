@@ -61,7 +61,7 @@
 <div class="fact" id="fact"><span class="lbl">DATO_DEL_DÍA //</span> <span id="fact-txt">cargando…</span></div>
 
 <footer>
-  Teclas <kbd>1</kbd>–<kbd>5</kbd> abren un proyecto · <kbd>r</kbd> refresca datos · stats vía GitHub API (público, ~60 req/h).
+  Teclas <kbd>1</kbd>–<kbd>9</kbd> abren un proyecto · <kbd>r</kbd> refresca datos · stats vía GitHub API (público, ~60 req/h).
   <span id="rate"></span>
 </footer>
 
@@ -74,6 +74,7 @@ const PROJECTS = [
   {repo:"aem-cloud-migration",  name:"AEM Migration",  desc:"Migración a AEM as a Cloud Service. Lo pesado.", tags:["aem","cloud","java"]},
   {repo:"japones",              name:"日本語",          desc:"Kana, kanji, gramática. Compilar el idioma en el cerebro.", tags:["日本語","srs"]},
   {repo:"claude-certified-architect", name:"Claude Certified", desc:"Camino a la certificación de arquitecto Anthropic.", tags:["ai","claude","arch"]},
+  {repo:"learn-java-21-aem",    name:"Java 21 · AEM",   desc:"Java moderno (8→21) para código AEM: Optional, streams, records.", tags:["java","aem","jvm"]},
 ];
 const START = new Date("2026-07-16"); // ponytail: ajusta si empezaste antes/después
 const pagesUrl = r => `https://${USER}.github.io/${r}/`;
@@ -166,7 +167,7 @@ setInterval(tick,1000); tick();
 loadStats();
 
 addEventListener("keydown",e=>{
-  if(e.key>="1"&&e.key<="5"){const c=document.querySelector(`.card[data-i="${e.key}"]`); if(c) location.href=c.href;}
+  if(e.key>="1"&&e.key<="9"){const c=document.querySelector(`.card[data-i="${e.key}"]`); if(c) location.href=c.href;}
   if(e.key==="r"){document.querySelectorAll(".stats").forEach(s=>s.innerHTML='<span class="spin"><span class="dot"></span>refrescando…</span>');loadStats();}
 });
 </script>
