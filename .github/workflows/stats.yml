@@ -1,0 +1,25 @@
+name: build-stats
+on:
+  schedule:
+    - cron: "0 */6 * * *"   # cada 6h
+  workflow_dispatch: {}      # botón manual
+
+permissions:
+  contents: write
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build stats.json
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: bash scripts/build-stats.sh
+      - name: Commit if changed
+        run: |
+          git config user.name  "stats-bot"
+          git config user.email "actions@github.com"
+          git add stats.json
+          git diff --cached --quiet || git commit -m "chore: refresh stats.json [skip ci]"
+          git push

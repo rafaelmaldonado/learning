@@ -75,7 +75,7 @@
 </div>
 
 <footer>
-  Teclas <kbd>1</kbd>–<kbd>9</kbd> abren un proyecto · <kbd>r</kbd> refresca datos · stats vía GitHub API (público, ~60 req/h).
+  Teclas <kbd>1</kbd>–<kbd>9</kbd> abren un proyecto · <kbd>r</kbd> fuerza refresco · stats vía GitHub API (cacheadas 3h; anónimo = 60 req/h).
   <span id="rate"></span>
 </footer>
 
@@ -140,35 +140,61 @@ function ago(d){
   return {t:`${Math.floor(days/30)}mes`, fresh:false};
 }
 
-async function loadStats(){
+// GitHub anónimo = 60 req/h; 6 repos × 3 llamadas gasta el cupo en 3 recargas.
+// Cacheamos por repo 3h; si la API falla (403), reusamos la caché aunque esté vencida.
+const TTL = 3*3600*1e3;
+function cacheGet(repo){ try{ return JSON.parse(localStorage.getItem("gh:"+repo)); }catch{ return null; } }
+function cacheSet(repo,data){ try{ localStorage.setItem("gh:"+repo, JSON.stringify({t:Date.now(),data})); }catch{} }
+
+async function fetchRepo(p, since){
+  const [repoR, commitsR, lessonsR] = await Promise.all([
+    fetch(`https://api.github.com/repos/${USER}/${p.repo}`),
+    fetch(`https://api.github.com/repos/${USER}/${p.repo}/commits?since=${since}&per_page=100`),
+    fetch(`https://api.github.com/repos/${USER}/${p.repo}/contents/lessons`)
+  ]);
+  if(!repoR.ok) throw new Error(repoR.status);
+  const repo=await repoR.json();
+  const commits = commitsR.ok ? await commitsR.json() : [];
+  const lessons = lessonsR.ok ? await lessonsR.json() : [];
+  return {
+    pushed_at: repo.pushed_at,
+    commits: Array.isArray(commits)?commits.length:0,
+    done: Array.isArray(lessons) ? lessons.filter(f=>/^\d+.*\.html$/.test(f.name)).length : 0,
+  };
+}
+
+// stats.json lo genera una GitHub Action cada 6h (API autenticada, sin límite práctico).
+// Si existe lo usamos → 0 llamadas a la API en runtime. Si no, caemos a fetch en vivo + caché.
+async function loadStats(force){
   let totalCommits=0, hottest={repo:"—",n:-1}, active=0;
   const since=new Date(Date.now()-30*864e5).toISOString();
+  let precomputed=null;
+  if(!force){
+    try{ const r=await fetch("stats.json",{cache:"no-cache"}); if(r.ok) precomputed=(await r.json()).repos; }catch{}
+  }
   await Promise.all(PROJECTS.map(async p=>{
     const el=document.getElementById("st-"+p.repo);
-    try{
-      const [repoR, commitsR, lessonsR] = await Promise.all([
-        fetch(`https://api.github.com/repos/${USER}/${p.repo}`),
-        fetch(`https://api.github.com/repos/${USER}/${p.repo}/commits?since=${since}&per_page=100`),
-        fetch(`https://api.github.com/repos/${USER}/${p.repo}/contents/lessons`)
-      ]);
-      if(!repoR.ok) throw new Error(repoR.status);
-      const repo=await repoR.json();
-      const commits = commitsR.ok ? await commitsR.json() : [];
-      const n = Array.isArray(commits)?commits.length:0;
-      totalCommits+=n; active++;
-      if(n>hottest.n) hottest={repo:p.name,n};
-      // lecciones construidas = archivos NNNN-*.html en lessons/
-      const lessons = lessonsR.ok ? await lessonsR.json() : [];
-      const done = Array.isArray(lessons) ? lessons.filter(f=>/^\d+.*\.html$/.test(f.name)).length : 0;
-      const pct = Math.min(100, Math.round(done / p.total * 100));
-      const a=ago(repo.pushed_at);
-      el.innerHTML=`
-        <span class="${a.fresh?'fresh':'stale'}"><span class="dot" style="background:${a.fresh?'var(--acc)':'var(--warn)'}"></span>push ${a.t}</span>
-        <span><b>${n}</b> commits/30d</span>
-        <span class="prog" title="${done}/${p.total} lecciones (${pct}%)"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="pct">${done}/${p.total}</span></span>`;
-    }catch(e){
-      el.innerHTML=`<span class="stale"><span class="dot" style="background:var(--red)"></span>sin datos (${e.message})</span>`;
+    const cached=cacheGet(p.repo);
+    let d, stale=false;
+    if(precomputed && precomputed[p.repo]){
+      d=precomputed[p.repo]; cacheSet(p.repo,d); // fuente de verdad: la Action
+    } else if(!force && cached && Date.now()-cached.t < TTL){
+      d=cached.data; // caché fresca: no gastamos cuota
+    } else {
+      try{ d=await fetchRepo(p,since); cacheSet(p.repo,d); }
+      catch(e){
+        if(cached){ d=cached.data; stale=true; }        // API falló → caché vieja
+        else{ el.innerHTML=`<span class="stale"><span class="dot" style="background:var(--red)"></span>sin datos (${e.message})</span>`; return; }
+      }
     }
+    totalCommits+=d.commits; active++;
+    if(d.commits>hottest.n) hottest={repo:p.name,n:d.commits};
+    const pct=Math.min(100, Math.round(d.done / p.total * 100));
+    const a=ago(d.pushed_at);
+    el.innerHTML=`
+      <span class="${a.fresh?'fresh':'stale'}"><span class="dot" style="background:${a.fresh?'var(--acc)':'var(--warn)'}"></span>push ${a.t}</span>
+      <span><b>${d.commits}</b> commits/30d</span>
+      <span class="prog" title="${d.done}/${p.total} lecciones (${pct}%)${stale?' · caché':''}"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="pct">${d.done}/${p.total}</span></span>`;
   }));
   document.getElementById("s-total").textContent=active||PROJECTS.length;
   document.getElementById("s-commits").textContent=totalCommits;
@@ -217,7 +243,7 @@ loadStats();
 
 addEventListener("keydown",e=>{
   if(e.key>="1"&&e.key<="9"){const c=document.querySelector(`.card[data-i="${e.key}"]`); if(c) location.href=c.href;}
-  if(e.key==="r"){document.querySelectorAll(".stats").forEach(s=>s.innerHTML='<span class="spin"><span class="dot"></span>refrescando…</span>');loadStats();}
+  if(e.key==="r"){document.querySelectorAll(".stats").forEach(s=>s.innerHTML='<span class="spin"><span class="dot"></span>refrescando…</span>');loadStats(true);}
 });
 </script>
 </body>
