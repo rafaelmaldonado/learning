@@ -20,6 +20,8 @@
   header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--line);padding-bottom:12px}
   h1{font-size:18px;margin:0;color:var(--fg)}
   h1 .c{color:var(--acc)}
+  .cursor{display:inline-block;width:9px;height:1.05em;background:var(--acc);margin-left:4px;vertical-align:text-bottom;animation:blink 1s step-end infinite}
+  @keyframes blink{50%{opacity:0}}
   .clock{color:var(--dim);font-size:12px}
   .clock b{color:var(--warn)}
   .bar{display:flex;gap:24px;flex-wrap:wrap;margin:16px 0;color:var(--dim);font-size:12px}
@@ -32,12 +34,21 @@
   .card p{margin:0 0 12px;color:var(--dim);font-size:12.5px;min-height:34px}
   .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
   .tag{font-size:11px;color:var(--acc);background:#0d1f14;border:1px solid #1c3a26;padding:1px 8px;border-radius:20px}
+  .prog{display:inline-flex;align-items:center;gap:7px;margin-left:auto}
+  .prog .track{width:70px;height:6px;border-radius:3px;background:#0d1f14;border:1px solid #1c3a26;overflow:hidden}
+  .prog .fill{height:100%;background:var(--acc);border-radius:3px 0 0 3px; display:block}
+  .prog .pct{color:var(--dim);font-variant-numeric:tabular-nums}
   .stats{display:flex;gap:16px;font-size:11.5px;color:var(--dim);border-top:1px solid var(--line);padding-top:10px}
   .stats span b{color:var(--fg);font-weight:600}
   .stats .fresh{color:var(--acc)} .stats .stale{color:var(--warn)}
   .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--dim);margin-right:5px}
   .fact{margin:22px 0 4px;padding:14px 16px;background:var(--panel);border-left:3px solid var(--warn);border-radius:0 6px 6px 0;color:var(--fg);font-size:13px}
   .fact .lbl{color:var(--warn);font-size:11px;letter-spacing:1px}
+  #feed{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+  #feed li{display:flex;gap:10px;align-items:baseline}
+  #feed .src{color:var(--acc);font-size:10.5px;min-width:82px;text-transform:uppercase;letter-spacing:.5px}
+  #feed a{color:var(--fg)} #feed a:hover{color:var(--acc2)}
+  #feed .meta{color:var(--dim);font-size:11px;white-space:nowrap}
   footer{margin-top:28px;color:var(--dim);font-size:11px;border-top:1px solid var(--line);padding-top:12px}
   footer kbd{background:var(--line);border-radius:3px;padding:1px 6px;color:var(--fg)}
   .spin{color:var(--dim)}
@@ -45,7 +56,7 @@
 </head>
 <body>
 <header>
-  <h1><span class="c">rafael</span>@learning:<span class="c">~</span>$ ./study.sh</h1>
+  <h1><span class="c">rafael</span>@learning:<span class="c">~</span>$ ./study.sh<span class="cursor"></span></h1>
   <div class="clock" id="clock">booting…</div>
 </header>
 
@@ -58,7 +69,10 @@
 
 <div class="grid" id="grid"></div>
 
-<div class="fact" id="fact"><span class="lbl">DATO_DEL_DÍA //</span> <span id="fact-txt">cargando…</span></div>
+<div class="fact" id="fact">
+  <span class="lbl">FEED_DEV // lo que se cuece hoy</span>
+  <ul id="feed"><li class="spin">cargando feeds…</li></ul>
+</div>
 
 <footer>
   Teclas <kbd>1</kbd>–<kbd>9</kbd> abren un proyecto · <kbd>r</kbd> refresca datos · stats vía GitHub API (público, ~60 req/h).
@@ -68,13 +82,16 @@
 <script>
 const USER = "rafaelmaldonado";
 // ponytail: repos hardcoded — es tu lista fija, no hay descubrimiento dinámico que valga la pena
+// progress = lecciones en lessons/ (contadas vía GitHub API) / total planeado.
+// Crear una lección sube la barra sola. `total` es el estimado de lecciones del curso;
+// vive también en MISSION.md de cada repo (ajústalo ahí y aquí si cambia el plan).
 const PROJECTS = [
-  {repo:"react-training",       name:"React",          desc:"Hooks, patrones, estado y lo que duela del ecosistema.", tags:["react","js","vite"]},
-  {repo:"aem-eds-training",     name:"AEM Edge Delivery", desc:"Edge Delivery Services: bloques, docs-as-content, perf.", tags:["aem","eds","perf"]},
-  {repo:"aem-cloud-migration",  name:"AEM Migration",  desc:"Migración a AEM as a Cloud Service. Lo pesado.", tags:["aem","cloud","java"]},
-  {repo:"japones",              name:"日本語",          desc:"Kana, kanji, gramática. Compilar el idioma en el cerebro.", tags:["日本語","srs"]},
-  {repo:"claude-certified-architect", name:"Claude Certified", desc:"Camino a la certificación de arquitecto Anthropic.", tags:["ai","claude","arch"]},
-  {repo:"learn-java-21-aem",    name:"Java 21 · AEM",   desc:"Java moderno (8→21) para código AEM: Optional, streams, records.", tags:["java","aem","jvm"]},
+  {repo:"react-training",       name:"React",          desc:"Hooks, patrones, estado y lo que duela del ecosistema.", tags:["react","js","vite"], total:30},
+  {repo:"aem-eds-training",     name:"AEM Edge Delivery", desc:"Edge Delivery Services: bloques, docs-as-content, perf.", tags:["aem","eds","perf"], total:25},
+  {repo:"aem-cloud-migration",  name:"AEM Migration",  desc:"Migración a AEM as a Cloud Service. Lo pesado.", tags:["aem","cloud","java"], total:30},
+  {repo:"japones",              name:"日本語",          desc:"Kana, kanji, gramática. Compilar el idioma en el cerebro.", tags:["日本語","srs"], total:60},
+  {repo:"claude-certified-architect", name:"Claude Certified", desc:"Camino a la certificación de arquitecto Anthropic.", tags:["ai","claude","arch"], total:20},
+  {repo:"learn-java-21-aem",    name:"Java 21 · AEM",   desc:"Java moderno (8→21) para código AEM: Optional, streams, records.", tags:["java","aem","jvm"], total:22},
 ];
 const START = new Date("2026-07-16"); // ponytail: ajusta si empezaste antes/después
 const pagesUrl = r => `https://${USER}.github.io/${r}/`;
@@ -129,9 +146,10 @@ async function loadStats(){
   await Promise.all(PROJECTS.map(async p=>{
     const el=document.getElementById("st-"+p.repo);
     try{
-      const [repoR, commitsR] = await Promise.all([
+      const [repoR, commitsR, lessonsR] = await Promise.all([
         fetch(`https://api.github.com/repos/${USER}/${p.repo}`),
-        fetch(`https://api.github.com/repos/${USER}/${p.repo}/commits?since=${since}&per_page=100`)
+        fetch(`https://api.github.com/repos/${USER}/${p.repo}/commits?since=${since}&per_page=100`),
+        fetch(`https://api.github.com/repos/${USER}/${p.repo}/contents/lessons`)
       ]);
       if(!repoR.ok) throw new Error(repoR.status);
       const repo=await repoR.json();
@@ -139,12 +157,15 @@ async function loadStats(){
       const n = Array.isArray(commits)?commits.length:0;
       totalCommits+=n; active++;
       if(n>hottest.n) hottest={repo:p.name,n};
+      // lecciones construidas = archivos NNNN-*.html en lessons/
+      const lessons = lessonsR.ok ? await lessonsR.json() : [];
+      const done = Array.isArray(lessons) ? lessons.filter(f=>/^\d+.*\.html$/.test(f.name)).length : 0;
+      const pct = Math.min(100, Math.round(done / p.total * 100));
       const a=ago(repo.pushed_at);
       el.innerHTML=`
         <span class="${a.fresh?'fresh':'stale'}"><span class="dot" style="background:${a.fresh?'var(--acc)':'var(--warn)'}"></span>push ${a.t}</span>
         <span><b>${n}</b> commits/30d</span>
-        <span><b>${repo.language||'—'}</b></span>
-        <span>★<b>${repo.stargazers_count}</b></span>`;
+        <span class="prog" title="${done}/${p.total} lecciones (${pct}%)"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="pct">${done}/${p.total}</span></span>`;
     }catch(e){
       el.innerHTML=`<span class="stale"><span class="dot" style="background:var(--red)"></span>sin datos (${e.message})</span>`;
     }
@@ -162,7 +183,35 @@ function tick(){
     `uptime <b>${up}d</b> · ${d.toLocaleTimeString('es',{hour12:false})} · ${d.toLocaleDateString('es')}`;
 }
 
-document.getElementById("fact-txt").textContent = facts[dayIndex()%facts.length];
+// 3 fuentes con CORS abierto. Cada una devuelve una lista; tomamos 1 item rotado por día.
+const FEEDS = [
+  {src:"Hacker News", url:"https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=30",
+   pick:d=>d.hits.filter(h=>h.title&&h.url).map(h=>({title:h.title,url:h.url,meta:`▲${h.points} · ${h.num_comments||0}💬`}))},
+  {src:"Dev.to", url:"https://dev.to/api/articles?top=1&per_page=30",
+   pick:d=>d.map(a=>({title:a.title,url:a.url,meta:`♥${a.positive_reactions_count} · ${a.reading_time_minutes}min`}))},
+  {src:"r/programming", url:"https://www.reddit.com/r/programming/top.json?t=day&limit=30",
+   pick:d=>d.data.children.map(c=>c.data).filter(p=>!p.stickied).map(p=>({title:p.title,url:"https://reddit.com"+p.permalink,meta:`▲${p.ups} · ${p.num_comments}💬`}))},
+];
+
+async function loadFeed(){
+  const ul=document.getElementById("feed");
+  const items=await Promise.all(FEEDS.map(async f=>{
+    try{
+      const r=await fetch(f.url); if(!r.ok) throw 0;
+      const list=f.pick(await r.json());
+      if(!list.length) throw 0;
+      const it=list[dayIndex()%list.length]; // rota por día, distinto item cada fuente
+      return `<li><span class="src">${f.src}</span>`+
+        `<a href="${it.url}" target="_blank" rel="noopener">${it.title}</a>`+
+        `<span class="meta">${it.meta}</span></li>`;
+    }catch{ return null; }
+  }));
+  const ok=items.filter(Boolean);
+  ul.innerHTML = ok.length
+    ? ok.join("")
+    : `<li><span class="src">offline</span>${facts[dayIndex()%facts.length]}</li>`; // fallback: dato geek local
+}
+loadFeed();
 setInterval(tick,1000); tick();
 loadStats();
 
