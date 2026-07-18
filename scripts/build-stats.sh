@@ -4,7 +4,7 @@
 set -euo pipefail
 
 USER="rafaelmaldonado"
-REPOS=(react-training aem-eds-training aem-cloud-migration japones claude-certified-architect learn-java-21-aem learn-aem-forms-backend learn-amazon-fba learn-aem-assests-professional)
+REPOS=(react-training aem-eds-training aem-cloud-migration japones claude-certified-architect learn-java-21-aem learn-aem-forms-backend learn-amazon-fba learn-aem-assets-professional)
 SINCE=$(date -u -d '30 days ago' +%Y-%m-%dT%H:%M:%SZ)
 
 gh_json(){ gh api "$1" 2>/dev/null || echo 'null'; }
