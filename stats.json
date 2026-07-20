@@ -1,14 +1,15 @@
 {
-  "generated": "2026-07-20T13:44:55Z",
+  "generated": "2026-07-20T19:22:37Z",
   "repos": {
     "react-training": {"pushed_at":"2026-07-17T19:04:33Z","commits":7,"done":1},
-    "aem-eds-training": {"pushed_at":"2026-07-17T19:02:55Z","commits":5,"done":1},
+    "aem-eds-training": {"pushed_at":"2026-07-20T18:37:41Z","commits":6,"done":2},
     "aem-cloud-migration": {"pushed_at":"2026-07-17T19:02:29Z","commits":5,"done":1},
     "japones": {"pushed_at":"2026-07-17T19:03:15Z","commits":4,"done":2},
     "claude-certified-architect": {"pushed_at":"2026-07-17T19:03:42Z","commits":8,"done":2},
     "learn-java-21-aem": {"pushed_at":"2026-07-17T18:48:19Z","commits":1,"done":2},
     "learn-aem-forms-backend": {"pushed_at":"2026-07-17T23:31:19Z","commits":1,"done":1},
     "learn-amazon-fba": {"pushed_at":"2026-07-18T01:54:09Z","commits":1,"done":1},
-    "learn-aem-assets-professional": {"pushed_at":"2026-07-18T17:39:02Z","commits":1,"done":1}
+    "learn-aem-assets-professional": {"pushed_at":"2026-07-18T17:39:02Z","commits":1,"done":1},
+    "learn-ai-in-aem": {"pushed_at":"2026-07-20T13:36:01Z","commits":1,"done":2}
   }
 }
