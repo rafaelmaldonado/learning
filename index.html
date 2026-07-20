@@ -52,6 +52,12 @@
   footer{margin-top:28px;color:var(--dim);font-size:11px;border-top:1px solid var(--line);padding-top:12px}
   footer kbd{background:var(--line);border-radius:3px;padding:1px 6px;color:var(--fg)}
   .spin{color:var(--dim)}
+  #goto{position:fixed;left:50%;top:28px;transform:translateX(-50%);z-index:10;display:none;
+    background:var(--panel);border:1px solid var(--acc2);border-radius:8px;padding:12px 18px;
+    box-shadow:0 8px 30px #000a;font-size:16px;min-width:260px}
+  #goto .lbl{color:var(--dim);font-size:11px;letter-spacing:1px;display:block;margin-bottom:4px}
+  #goto b{color:var(--acc);font-size:20px}
+  #goto .name{color:var(--fg)} #goto .none{color:var(--red)}
 </style>
 </head>
 <body>
@@ -67,6 +73,9 @@
   <span><b id="s-streak">·</b> repo más caliente 🔥</span>
 </div>
 
+<div id="goto"><span class="lbl">IR A CURSO</span>
+  <b id="goto-buf"></b><span class="cursor"></span> <span id="goto-name"></span></div>
+
 <div class="grid" id="grid"></div>
 
 <div class="fact" id="fact">
@@ -75,7 +84,7 @@
 </div>
 
 <footer>
-  Teclas <kbd>1</kbd>–<kbd>9</kbd> abren un proyecto · <kbd>r</kbd> fuerza refresco · stats vía GitHub API (cacheadas 3h; anónimo = 60 req/h).
+  Teclea el <kbd>nº</kbd> del curso + <kbd>Enter</kbd> para abrirlo · <kbd>r</kbd> fuerza refresco · stats vía GitHub API (cacheadas 3h; anónimo = 60 req/h).
   <span id="rate"></span>
 </footer>
 
@@ -95,6 +104,7 @@ const PROJECTS = [
   {repo:"learn-aem-forms-backend", name:"AEM Forms Backend", desc:"AEM Forms del lado servidor: submit handlers, workflows, integraciones.", tags:["aem","forms","java"], total:25},
   {repo:"learn-amazon-fba",     name:"Amazon FBA",      desc:"Fulfillment by Amazon: sourcing, listings, logística y márgenes.", tags:["fba","ecommerce","ops"], total:20},
   {repo:"learn-aem-assets-professional",     name:"AEM Assets Developer",      desc:"AEM Assets Developer Professional Certification", tags:["aem","assets","metadata"], total:18},
+  {repo:"learn-ai-in-aem",     name:"AI in AEM",      desc:"AI is now an integral part of AEM as a Cloud Service", tags:["aem","ai","agents"], total:12},
 ];
 const START = new Date("2026-07-16"); // ponytail: ajusta si empezaste antes/después
 const pagesUrl = r => `https://${USER}.github.io/${r}/`;
@@ -244,8 +254,21 @@ loadFeed();
 setInterval(tick,1000); tick();
 loadStats();
 
+// prompt "ir a curso": teclea dígitos, Enter navega. Consistente con >9 cursos.
+let buf="";
+const goto=document.getElementById("goto"), gotoBuf=document.getElementById("goto-buf"), gotoName=document.getElementById("goto-name");
+function renderGoto(){
+  goto.style.display = buf ? "block" : "none";
+  gotoBuf.textContent = buf;
+  const p = PROJECTS[+buf-1];
+  gotoName.className = buf && !p ? "none" : "name";
+  gotoName.textContent = buf && p ? "→ "+p.name : (buf ? "✗ no existe" : "");
+}
 addEventListener("keydown",e=>{
-  if(e.key>="1"&&e.key<="9"){const c=document.querySelector(`.card[data-i="${e.key}"]`); if(c) location.href=c.href;}
+  if(e.key>="0"&&e.key<="9"){ buf=(buf+e.key).slice(0,2); renderGoto(); return; }
+  if(e.key==="Backspace"){ buf=buf.slice(0,-1); renderGoto(); return; }
+  if(e.key==="Escape"){ buf=""; renderGoto(); return; }
+  if(e.key==="Enter"&&buf){ const c=document.querySelector(`.card[data-i="${+buf}"]`); if(c) location.href=c.href; buf=""; renderGoto(); return; }
   if(e.key==="r"){document.querySelectorAll(".stats").forEach(s=>s.innerHTML='<span class="spin"><span class="dot"></span>refrescando…</span>');loadStats(true);}
 });
 </script>
