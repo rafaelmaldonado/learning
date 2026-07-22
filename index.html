@@ -72,7 +72,7 @@
   <span><b id="s-total">·</b> repos activos</span>
   <span><b id="s-commits">·</b> commits (30d)</span>
   <span><b id="s-days">·</b> días aprendiendo</span>
-  <span><b id="s-streak">·</b> repo más caliente 🔥</span>
+  <span><b id="s-streak">·</b> 🔥</span>
 </div>
 
 <div id="goto"><span class="lbl">IR A CURSO</span>
@@ -100,7 +100,7 @@ const USER = "rafaelmaldonado";
 // vive también en MISSION.md de cada repo (ajústalo ahí y aquí si cambia el plan).
 const PROJECTS = [
   {repo:"react-training",       name:"React",          desc:"Hooks, patrones, estado y lo que duela del ecosistema.", tags:["react","js","vite"], total:30},
-  {repo:"aem-eds-training",     name:"AEM Edge Delivery", desc:"Edge Delivery Services: bloques, docs-as-content, perf.", tags:["aem","eds","perf"], total:25},
+  {repo:"aem-eds-training",     name:"AEM Edge Delivery Services", desc:"Edge Delivery Services: bloques, docs-as-content, perf.", tags:["aem","eds","perf"], total:25},
   {repo:"aem-cloud-migration",  name:"AEM Migration",  desc:"Migración a AEM as a Cloud Service. Lo pesado.", tags:["aem","cloud","java"], total:30},
   {repo:"japones",              name:"日本語",          desc:"Kana, kanji, gramática. Compilar el idioma en el cerebro.", tags:["日本語","srs"], total:60},
   {repo:"claude-certified-architect", name:"Claude Certified", desc:"Camino a la certificación de arquitecto Anthropic.", tags:["ai","claude","arch"], total:20},
@@ -205,7 +205,7 @@ async function loadStats(force){
       }
     }
     totalCommits+=d.commits; active++;
-    if(d.commits>hottest.n) hottest={repo:p.name,n:d.commits};
+    if(d.done>hottest.n) hottest={repo:p.name,n:d.done};
     const pct=Math.min(100, Math.round(d.done / p.total * 100));
     const a=ago(d.pushed_at);
     el.innerHTML=`
