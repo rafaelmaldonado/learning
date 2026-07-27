@@ -3,76 +3,264 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>~/learning</title>
+<title>~/learning — biblioteca de estudio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+  /* Two themes in one file. Editorial is the DEFAULT — it's the Kindle-safe, JS-off
+     fallback. The terminal theme is served only inside @media (color): color screens
+     (iOS/macOS/Windows) get it; e-ink (color bit-depth 0) never matches, so a Kindle
+     always lands on editorial even if detection or JS fails. */
   :root{
-    --bg:#0b0e14; --panel:#11151f; --line:#1c2230; --fg:#c9d1d9;
-    --dim:#5c6b82; --acc:#39d353; --acc2:#58a6ff; --warn:#e3b341; --red:#f85149;
+    --ink:#141414; --muted:#6a655e; --faint:#8f897f;
+    --rule:#dcd8cf; --accent:#9c3818; --bg:#fbfaf7; --code-bg:#f1efe8;
+    --serif:"Fraunces",Georgia,serif;
+    --sans:"Source Sans 3",-apple-system,"Segoe UI",Helvetica,sans-serif;
+    --mono:"JetBrains Mono","SF Mono",Consolas,monospace;
+    --measure:44rem;
   }
   *{box-sizing:border-box}
-  html,body{margin:0;height:100%}
+  .tm{display:none}  /* terminal DOM hidden by default (editorial wins) */
+
+  /* ===== EDITORIAL (default / e-ink) ===== */
   body{
-    background:var(--bg); color:var(--fg);
-    font:14px/1.5 "SFMono-Regular",ui-monospace,"JetBrains Mono",Consolas,monospace;
-    padding:24px; max-width:1100px; margin:0 auto;
+    margin:4rem auto 6rem; max-width:var(--measure); padding:0 1.5rem;
+    background:var(--bg); color:var(--ink);
+    font-family:var(--sans); font-size:1.05rem; line-height:1.62;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
   }
-  a{color:var(--acc2);text-decoration:none}
-  header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--line);padding-bottom:12px}
-  h1{font-size:18px;margin:0;color:var(--fg)}
-  h1 .c{color:var(--acc)}
-  .cursor{display:inline-block;width:9px;height:1.05em;background:var(--acc);margin-left:4px;vertical-align:text-bottom;animation:blink 1s step-end infinite}
-  @keyframes blink{50%{opacity:0}}
-  .clock{color:var(--dim);font-size:12px}
-  .clock b{color:var(--warn)}
-  .bar{display:flex;gap:24px;flex-wrap:wrap;margin:16px 0;color:var(--dim);font-size:12px}
-  .bar b{color:var(--acc);font-size:16px}
-  .main{display:grid;grid-template-columns:1fr;gap:22px;align-items:start;margin-top:8px}
-  @media(min-width:900px){.main{grid-template-columns:1fr 300px}.main .fact{position:sticky;top:24px;margin:0}}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:16px;position:relative;transition:.15s;cursor:pointer}
-  .card:hover{border-color:var(--acc2);transform:translateY(-2px)}
-  .card .k{position:absolute;top:12px;right:14px;color:var(--dim);border:1px solid var(--line);border-radius:4px;padding:1px 7px;font-size:11px}
-  .card h2{font-size:15px;margin:0 0 4px;color:var(--fg)}
-  .card p{margin:0 0 12px;color:var(--dim);font-size:12.5px;min-height:34px}
-  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-  .tag{font-size:11px;color:var(--acc);background:#0d1f14;border:1px solid #1c3a26;padding:1px 8px;border-radius:20px}
-  .prog{display:inline-flex;align-items:center;gap:7px;margin-left:auto}
-  .prog .track{width:70px;height:6px;border-radius:3px;background:#0d1f14;border:1px solid #1c3a26;overflow:hidden}
-  .prog .fill{height:100%;background:var(--acc);border-radius:3px 0 0 3px; display:block}
-  .prog .pct{color:var(--dim);font-variant-numeric:tabular-nums}
-  .stats{display:flex;gap:16px;font-size:11.5px;color:var(--dim);border-top:1px solid var(--line);padding-top:10px}
-  .stats span b{color:var(--fg);font-weight:600}
-  .stats .fresh{color:var(--acc)} .stats .stale{color:var(--warn)}
-  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--dim);margin-right:5px}
-  .fact{margin:22px 0 4px;padding:14px 16px;background:var(--panel);border-left:3px solid var(--warn);border-radius:0 6px 6px 0;color:var(--fg);font-size:13px}
-  .fact .lbl{color:var(--warn);font-size:11px;letter-spacing:1px}
-  #feed{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
-  #feed li{display:flex;gap:10px;align-items:baseline}
-  #feed .src{color:var(--acc);font-size:10.5px;min-width:82px;text-transform:uppercase;letter-spacing:.5px}
-  #feed a{color:var(--fg)} #feed a:hover{color:var(--acc2)}
-  #feed .meta{color:var(--dim);font-size:11px;white-space:nowrap}
-  footer{margin-top:28px;color:var(--dim);font-size:11px;border-top:1px solid var(--line);padding-top:12px}
-  footer kbd{background:var(--line);border-radius:3px;padding:1px 6px;color:var(--fg)}
-  .spin{color:var(--dim)}
-  #goto{position:fixed;left:50%;top:28px;transform:translateX(-50%);z-index:10;display:none;
-    background:var(--panel);border:1px solid var(--acc2);border-radius:8px;padding:12px 18px;
-    box-shadow:0 8px 30px #000a;font-size:16px;min-width:260px}
-  #goto .lbl{color:var(--dim);font-size:11px;letter-spacing:1px;display:block;margin-bottom:4px}
-  #goto b{color:var(--acc);font-size:20px}
-  #goto .name{color:var(--fg)} #goto .none{color:var(--red)}
+  .ed a{color:var(--accent); text-decoration:none; border-bottom:1px solid rgba(156,56,24,.4)}
+  .ed a:hover{border-bottom-color:var(--accent)}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+
+  .ed header{border-bottom:2px solid var(--ink); padding-bottom:1.4rem; margin-bottom:2.4rem}
+  .ed .mark{font-family:var(--mono); font-size:.9rem; color:var(--muted); letter-spacing:.02em; margin:0 0 .5rem}
+  .ed h1{font-family:var(--serif); font-weight:600; font-size:clamp(2.1rem,6vw,2.7rem);
+     letter-spacing:-0.02em; line-height:1.08; margin:0 0 .4rem; text-wrap:balance}
+  .ed .lede{font-family:var(--serif); font-style:italic; font-weight:400; font-size:1.25rem;
+        color:var(--muted); margin:0; line-height:1.35; text-wrap:balance}
+
+  .library{list-style:none; margin:0; padding:0;
+           border-top:2px solid var(--ink); border-bottom:2px solid var(--ink)}
+  .course{display:grid; grid-template-columns:2rem 1fr auto; gap:.2rem 1rem;
+          align-items:baseline; padding:1.1rem 0; border-bottom:1px solid var(--rule)}
+  .library .course:last-child{border-bottom:none}
+  .course .n{font-family:var(--mono); font-size:.85rem; color:var(--faint);
+             font-variant-numeric:tabular-nums; padding-top:.15rem}
+  .course .body{grid-column:2}
+  .course h2{font-family:var(--serif); font-weight:600; font-size:1.35rem; letter-spacing:-0.01em;
+             margin:0 0 .15rem; line-height:1.2}
+  .course h2 a{color:var(--ink); border-bottom:1px solid var(--rule)}
+  .course h2 a:hover{color:var(--accent); border-bottom-color:var(--accent)}
+  .course p{margin:0; color:var(--muted); font-size:1rem; line-height:1.45}
+  .course .path{font-family:var(--mono); font-size:.78rem; color:var(--faint); margin-top:.3rem}
+  .course .prog{grid-column:3; grid-row:1 / span 3; text-align:right; white-space:nowrap;
+                font-family:var(--mono); font-size:.85rem; color:var(--muted);
+                font-variant-numeric:tabular-nums; padding-top:.15rem}
+  .course .prog b{display:block; font-size:1.15rem; color:var(--ink); font-weight:500}
+  .course .prog .bar{display:inline-block; width:56px; height:3px; background:var(--rule);
+                     margin-top:.4rem; vertical-align:middle}
+  .course .prog .bar span{display:block; height:100%; background:var(--accent)}
+
+  .meta{margin:2.4rem 0 0; padding-top:1.2rem; border-top:1px solid var(--rule);
+        font-family:var(--sans); font-size:.9rem; color:var(--muted);
+        display:flex; gap:1.6rem; flex-wrap:wrap}
+  .meta b{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums}
+
+  .feed-sec{margin-top:2.8rem}
+  .feed-sec h3{font-family:var(--serif); font-weight:600; font-size:1.15rem; letter-spacing:-0.01em;
+               margin:0 0 .2rem; padding-top:1.1rem; border-top:1px solid var(--rule)}
+  .feed-sec .hint{font-size:.85rem; color:var(--faint); margin:0 0 .8rem}
+  #ed-feed{list-style:none; margin:0; padding:0}
+  #ed-feed li{padding:.5rem 0; border-bottom:1px solid var(--rule); font-size:.98rem; line-height:1.4}
+  #ed-feed .src{font-family:var(--mono); font-size:.72rem; text-transform:uppercase; letter-spacing:.06em;
+             color:var(--faint); margin-right:.6rem}
+  #ed-feed .fmeta{color:var(--faint); font-size:.82rem; margin-left:.4rem}
+  #ed-feed a{color:var(--accent); border-bottom:1px solid rgba(156,56,24,.4)}
+
+  .ed footer{margin-top:3rem; border-top:1px solid var(--rule); padding-top:1.2rem;
+         font-family:var(--sans); font-size:.82rem; color:var(--faint); line-height:1.5}
+  .ed footer kbd{font-family:var(--mono); font-size:.9em; background:var(--code-bg);
+             border:1px solid var(--rule); border-radius:2px; padding:.05em .4em}
+
+  @media (max-width:34rem){
+    .course{grid-template-columns:1.6rem 1fr; gap:.15rem .8rem}
+    .course .prog{grid-column:1 / -1; grid-row:auto; text-align:left; margin-top:.5rem}
+    .course .prog b{display:inline; font-size:.9rem}
+    .course .prog .bar{margin:0 0 0 .6rem}
+  }
+
+  /* ===== TERMINAL (color screens only) ===== */
+  @media (color){
+    .ed{display:none}
+    .tm{display:block}
+    html,body{margin:0;height:100%;max-width:none}
+    body{
+      background:#0b0e14; color:#c9d1d9;
+      font:14px/1.5 "JetBrains Mono","SFMono-Regular",ui-monospace,Consolas,monospace;
+      padding:24px; max-width:1100px; margin:0 auto;
+    }
+    .tm a{color:#58a6ff;text-decoration:none}
+    .tm header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;border-bottom:1px solid #1c2230;padding-bottom:12px}
+    .tm h1{font-size:18px;margin:0;color:#c9d1d9;font-family:inherit;font-weight:400;letter-spacing:0}
+    .tm h1 .c{color:#39d353}
+    .cursor{display:inline-block;width:9px;height:1.05em;background:#39d353;margin-left:4px;vertical-align:text-bottom;animation:blink 1s step-end infinite}
+    @keyframes blink{50%{opacity:0}}
+    .clock{color:#5c6b82;font-size:12px}
+    .clock b{color:#e3b341}
+    .bar{display:flex;gap:24px;flex-wrap:wrap;margin:16px 0;color:#5c6b82;font-size:12px}
+    .bar b{color:#39d353;font-size:16px}
+    .main{display:grid;grid-template-columns:1fr;gap:22px;align-items:start;margin-top:8px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+    .card{background:#11151f;border:1px solid #1c2230;border-radius:8px;padding:16px;position:relative;transition:.15s;cursor:pointer}
+    .card:hover{border-color:#58a6ff;transform:translateY(-2px)}
+    .card .k{position:absolute;top:12px;right:14px;color:#5c6b82;border:1px solid #1c2230;border-radius:4px;padding:1px 7px;font-size:11px}
+    .card h2{font-size:15px;margin:0 0 4px;color:#c9d1d9;font-family:inherit;font-weight:400}
+    .card p{margin:0 0 12px;color:#5c6b82;font-size:12.5px;min-height:34px}
+    .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+    .tag{font-size:11px;color:#39d353;background:#0d1f14;border:1px solid #1c3a26;padding:1px 8px;border-radius:20px}
+    .prog{display:inline-flex;align-items:center;gap:7px;margin-left:auto}
+    .prog .track{width:70px;height:6px;border-radius:3px;background:#0d1f14;border:1px solid #1c3a26;overflow:hidden}
+    .prog .fill{height:100%;background:#39d353;border-radius:3px 0 0 3px; display:block}
+    .prog .pct{color:#5c6b82;font-variant-numeric:tabular-nums}
+    .stats{display:flex;gap:16px;font-size:11.5px;color:#5c6b82;border-top:1px solid #1c2230;padding-top:10px}
+    .stats span b{color:#c9d1d9;font-weight:600}
+    .stats .fresh{color:#39d353} .stats .stale{color:#e3b341}
+    .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#5c6b82;margin-right:5px}
+    .fact{margin:22px 0 4px;padding:14px 16px;background:#11151f;border-left:3px solid #e3b341;border-radius:0 6px 6px 0;color:#c9d1d9;font-size:13px}
+    .fact .lbl{color:#e3b341;font-size:11px;letter-spacing:1px}
+    #feed{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+    #feed li{display:flex;gap:10px;align-items:baseline}
+    #feed .src{color:#39d353;font-size:10.5px;min-width:82px;text-transform:uppercase;letter-spacing:.5px}
+    #feed a{color:#c9d1d9} #feed a:hover{color:#58a6ff}
+    #feed .meta{color:#5c6b82;font-size:11px;white-space:nowrap}
+    .tm footer{margin-top:28px;color:#5c6b82;font-size:11px;border-top:1px solid #1c2230;padding-top:12px}
+    .tm footer kbd{background:#1c2230;border-radius:3px;padding:1px 6px;color:#c9d1d9;font-family:inherit}
+    .spin{color:#5c6b82}
+    #goto{position:fixed;left:50%;top:28px;transform:translateX(-50%);z-index:10;display:none;
+      background:#11151f;border:1px solid #58a6ff;border-radius:8px;padding:12px 18px;
+      box-shadow:0 8px 30px #000a;font-size:16px;min-width:260px}
+    #goto .lbl{color:#5c6b82;font-size:11px;letter-spacing:1px;display:block;margin-bottom:4px}
+    #goto b{color:#39d353;font-size:20px}
+    #goto .name{color:#c9d1d9} #goto .none{color:#f85149}
+    @media(min-width:900px){.main{grid-template-columns:1fr 300px}.main .fact{position:sticky;top:24px;margin:0}}
+  }
 </style>
 </head>
 <body>
+
+<!-- ===== EDITORIAL DOM (default; Kindle-safe, static, works JS-off) ===== -->
+<div class="ed">
+<header>
+  <p class="mark">~/learning</p>
+  <h1>Biblioteca de estudio</h1>
+  <p class="lede">Cursos que estoy construyendo y cursando, uno a uno.</p>
+</header>
+
+<ol class="library" id="library">
+  <li class="course" data-repo="react-training">
+    <span class="n">01</span>
+    <div class="body"><h2><a href="https://rafaelmaldonado.github.io/react-training/">React</a></h2>
+      <p>Hooks, patrones, estado y lo que duela del ecosistema.</p>
+      <p class="path">react-training</p></div>
+    <div class="prog"><b><span class="done">1</span>/30</b><span class="bar"><span style="width:3%"></span></span></div>
+  </li>
+  <li class="course" data-repo="aem-eds-training">
+    <span class="n">02</span>
+    <div class="body"><h2><a href="https://rafaelmaldonado.github.io/aem-eds-training/">AEM Edge Delivery Services</a></h2>
+      <p>Edge Delivery Services: bloques, docs-as-content, performance.</p>
+      <p class="path">aem-eds-training</p></div>
+    <div class="prog"><b><span class="done">4</span>/33</b><span class="bar"><span style="width:12%"></span></span></div>
+  </li>
+  <li class="course" data-repo="aem-cloud-migration">
+    <span class="n">03</span>
+    <div class="body"><h2><a href="https://rafaelmaldonado.github.io/aem-cloud-migration/">AEM Migration</a></h2>
+      <p>Migración a AEM as a Cloud Service. Lo pesado.</p>
+      <p class="path">aem-cloud-migration</p></div>
+    <div class="prog"><b><span class="done">1</span>/30</b><span class="bar"><span style="width:3%"></span></span></div>
+  </li>
+  <li class="course" data-repo="japones">
+    <span class="n">04</span>
+    <div class="body"><h2><a href="https://rafaelmaldonado.github.io/japones/">日本語</a></h2>
+      <p>Kana, kanji, gramática. Compilar el idioma en el cerebro.</p>
+      <p class="path">japones</p></div>
+    <div class="prog"><b><span class="done">2</span>/60</b><span class="bar"><span style="width:3%"></span></span></div>
+  </li>
+  <li class="course" data-repo="claude-certified-architect">
+    <span class="n">05</span>
+    <div class="body"><h2><a href="https://rafaelmaldonado.github.io/claude-certified-architect/">Claude Certified Architect</a></h2>
+      <p>Camino a la certificación de arquitecto Anthropic.</p>
+      <p class="path">claude-certified-architect</p></div>
+    <div class="prog"><b><span class="done">3</span>/20</b><span class="bar"><span style="width:15%"></span></span></div>
+  </li>
+  <li class="course" data-repo="learn-java-21-aem">
+    <span class="n">06</span>
+    <div class="body"><h2><a href="https://rafaelmaldonado.github.io/learn-java-21-aem/">Java 21 · AEM</a></h2>
+      <p>Java moderno (8→21) para código AEM: Optional, streams, records.</p>
+      <p class="path">learn-java-21-aem</p></div>
+    <div class="prog"><b><span class="done">2</span>/22</b><span class="bar"><span style="width:9%"></span></span></div>
+  </li>
+  <li class="course" data-repo="learn-aem-forms-backend">
+    <span class="n">07</span>
+    <div class="body"><h2><a href="https://rafaelmaldonado.github.io/learn-aem-forms-backend/">AEM Forms Backend</a></h2>
+      <p>AEM Forms del lado servidor: submit handlers, workflows, integraciones.</p>
+      <p class="path">learn-aem-forms-backend</p></div>
+    <div class="prog"><b><span class="done">1</span>/25</b><span class="bar"><span style="width:4%"></span></span></div>
+  </li>
+  <li class="course" data-repo="learn-amazon-fba">
+    <span class="n">08</span>
+    <div class="body"><h2><a href="https://rafaelmaldonado.github.io/learn-amazon-fba/">Amazon FBA</a></h2>
+      <p>Fulfillment by Amazon: sourcing, listings, logística y márgenes.</p>
+      <p class="path">learn-amazon-fba</p></div>
+    <div class="prog"><b><span class="done">1</span>/20</b><span class="bar"><span style="width:5%"></span></span></div>
+  </li>
+  <li class="course" data-repo="learn-aem-assets-professional">
+    <span class="n">09</span>
+    <div class="body"><h2><a href="https://rafaelmaldonado.github.io/learn-aem-assets-professional/">AEM Assets Developer</a></h2>
+      <p>AEM Assets Developer Professional Certification.</p>
+      <p class="path">learn-aem-assets-professional</p></div>
+    <div class="prog"><b><span class="done">1</span>/18</b><span class="bar"><span style="width:6%"></span></span></div>
+  </li>
+  <li class="course" data-repo="learn-ai-in-aem">
+    <span class="n">10</span>
+    <div class="body"><h2><a href="https://rafaelmaldonado.github.io/learn-ai-in-aem/">AI in AEM</a></h2>
+      <p>La IA como parte integral de AEM as a Cloud Service.</p>
+      <p class="path">learn-ai-in-aem</p></div>
+    <div class="prog"><b><span class="done">2</span>/12</b><span class="bar"><span style="width:17%"></span></span></div>
+  </li>
+</ol>
+
+<p class="meta" id="meta">
+  <span><b id="s-total">10</b> cursos</span>
+  <span><b id="s-commits">·</b> commits (30d)</span>
+  <span><b id="s-days">·</b> días aprendiendo</span>
+</p>
+
+<section class="feed-sec" id="ed-feed-sec" hidden>
+  <h3>Del feed de hoy</h3>
+  <p class="hint">Una lectura rotada por día. Mejora opcional — no hace falta para nada de arriba.</p>
+  <ul id="ed-feed"></ul>
+</section>
+
+<footer>
+  Cursos en HTML estático (legibles sin JS). El progreso y el feed se actualizan solos si hay red.
+  Con teclado: escribe el <kbd>nº</kbd> de un curso y <kbd>Enter</kbd> para abrirlo.
+</footer>
+</div>
+
+<!-- ===== TERMINAL DOM (color screens only; JS-built) ===== -->
+<div class="tm">
 <header>
   <h1><span class="c">rafael</span>@learning:<span class="c">~</span>$ ./study.sh<span class="cursor"></span></h1>
   <div class="clock" id="clock">booting…</div>
 </header>
 
 <div class="bar" id="bar">
-  <span><b id="s-total">·</b> repos activos</span>
-  <span><b id="s-commits">·</b> commits (30d)</span>
-  <span><b id="s-days">·</b> días aprendiendo</span>
-  <span><b id="s-streak">·</b> 🔥</span>
+  <span><b id="ts-total">·</b> repos activos</span>
+  <span><b id="ts-commits">·</b> commits (30d)</span>
+  <span><b id="ts-days">·</b> días aprendiendo</span>
+  <span><b id="ts-streak">·</b> 🔥</span>
 </div>
 
 <div id="goto"><span class="lbl">IR A CURSO</span>
@@ -91,13 +279,11 @@
   Teclea el <kbd>nº</kbd> del curso + <kbd>Enter</kbd> para abrirlo · <kbd>r</kbd> fuerza refresco · stats vía GitHub API (cacheadas 3h; anónimo = 60 req/h).
   <span id="rate"></span>
 </footer>
+</div>
 
 <script>
+"use strict";
 const USER = "rafaelmaldonado";
-// ponytail: repos hardcoded — es tu lista fija, no hay descubrimiento dinámico que valga la pena
-// progress = lecciones en lessons/ (contadas vía GitHub API) / total planeado.
-// Crear una lección sube la barra sola. `total` es el estimado de lecciones del curso;
-// vive también en MISSION.md de cada repo (ajústalo ahí y aquí si cambia el plan).
 const PROJECTS = [
   {repo:"react-training",       name:"React",          desc:"Hooks, patrones, estado y lo que duela del ecosistema.", tags:["react","js","vite"], total:30},
   {repo:"aem-eds-training",     name:"AEM Edge Delivery Services", desc:"Edge Delivery Services: bloques, docs-as-content, perf.", tags:["aem","eds","perf"], total:33},
@@ -110,171 +296,204 @@ const PROJECTS = [
   {repo:"learn-aem-assets-professional",     name:"AEM Assets Developer",      desc:"AEM Assets Developer Professional Certification", tags:["aem","assets","metadata"], total:18},
   {repo:"learn-ai-in-aem",     name:"AI in AEM",      desc:"AI is now an integral part of AEM as a Cloud Service", tags:["aem","ai","agents"], total:12},
 ];
-const START = new Date("2026-07-16"); // ponytail: ajusta si empezaste antes/después
+const START = new Date("2026-07-16");
+const TOTALS = Object.fromEntries(PROJECTS.map(p=>[p.repo,p.total]));
 const pagesUrl = r => `https://${USER}.github.io/${r}/`;
-const repoUrl  = r => `https://github.com/${USER}/${r}`;
+const dayIndex = () => Math.floor((Date.now()-+START)/864e5);
 
-const facts = [
-  "El bug del Mars Climate Orbiter (1999): perdieron una sonda de $327M por mezclar unidades métricas e imperiales.",
-  "La primera 'bug' real fue una polilla pegada a un relé del Harvard Mark II en 1947. Grace Hopper la pegó al log.",
-  "Un año-luz de código a 80 col: ~370 mil millones de líneas. Tu repo probablemente no llega.",
-  "El 'null' costó ~mil millones en fallos según Tony Hoare, que lo llamó su 'error de mil millones de dólares'.",
-  "git guarda todo por hash SHA-1: dos commits idénticos son literalmente el mismo objeto.",
-  "日本語 tiene 3 sistemas de escritura mezclados. Es como leer código en 3 lenguajes a la vez.",
-  "El primer programa 'Hello World' apareció en un tutorial de B en 1972, antes que C.",
-  "La complejidad ciclomática > 10 en una función = hora de refactorizar. O de rezar.",
-  "AEM EDS sirve HTML desde un Google Doc. La arquitectura más rara que amarás.",
-  "Un LLM no 'sabe' nada: predice el siguiente token. Como tú en un examen sin estudiar.",
-  "El caché tiene dos problemas difíciles: invalidación de caché, nombrar cosas, y errores off-by-one.",
-  "Regla de Kernighan: depurar es 2x más difícil que escribir el código. No escribas tu código al máximo de tu ingenio.",
+/* ---------- Editorial enhancement (runs everywhere; light, non-blocking) ---------- */
+fetch("stats.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(s=>{
+  if(!s||!s.repos) return;
+  let commits=0;
+  document.querySelectorAll(".ed .course").forEach(li=>{
+    const d=s.repos[li.dataset.repo]; if(!d) return;
+    commits+=d.commits||0;
+    const pct=Math.min(100,Math.round((d.done||0)/(TOTALS[li.dataset.repo]||1)*100));
+    li.querySelector(".done").textContent=d.done||0;
+    li.querySelector(".bar span").style.width=pct+"%";
+  });
+  document.getElementById("s-commits").textContent=commits;
+}).catch(()=>{});
+document.getElementById("s-days").textContent=Math.max(0,dayIndex());
+
+const ED_FEEDS=[
+  {src:"Hacker News",url:"https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=30",
+   pick:d=>d.hits.filter(h=>h.title&&h.url).map(h=>({t:h.title,u:h.url,m:h.points+" pts"}))},
+  {src:"Dev.to",url:"https://dev.to/api/articles?top=1&per_page=30",
+   pick:d=>d.map(a=>({t:a.title,u:a.url,m:a.reading_time_minutes+" min"}))},
 ];
-
-function dayIndex(){ // determinístico por día → mismo dato todo el día, cambia mañana
-  return Math.floor((Date.now() - +START) / 864e5);
-}
-
-const grid = document.getElementById("grid");
-PROJECTS.forEach((p,i)=>{
-  const a=document.createElement("a");
-  a.href=pagesUrl(p.repo); a.className="card"; a.dataset.i=i+1;
-  a.innerHTML=`
-    <span class="k">${i+1}</span>
-    <h2>${p.name}</h2>
-    <p>${p.desc}</p>
-    <div class="tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
-    <div class="stats" id="st-${p.repo}">
-      <span class="spin"><span class="dot"></span>consultando GitHub…</span>
-    </div>`;
-  grid.appendChild(a);
+Promise.all(ED_FEEDS.map(f=>fetch(f.url).then(r=>r.ok?r.json():null).then(d=>{
+  if(!d) return null; const list=f.pick(d); if(!list.length) return null;
+  const it=list[dayIndex()%list.length];
+  return `<li><span class="src">${f.src}</span><a href="${it.u}" target="_blank" rel="noopener">${it.t}</a><span class="fmeta">${it.m}</span></li>`;
+}).catch(()=>null))).then(items=>{
+  const ok=items.filter(Boolean); if(!ok.length) return;
+  document.getElementById("ed-feed").innerHTML=ok.join("");
+  document.getElementById("ed-feed-sec").hidden=false;
 });
 
-function ago(d){
-  const days=Math.floor((Date.now()-+new Date(d))/864e5);
-  if(days<=0) return {t:"hoy", fresh:true};
-  if(days===1) return {t:"ayer", fresh:true};
-  if(days<7)  return {t:`${days}d`, fresh:true};
-  if(days<30) return {t:`${days}d`, fresh:false};
-  return {t:`${Math.floor(days/30)}mes`, fresh:false};
-}
-
-// GitHub anónimo = 60 req/h; 6 repos × 3 llamadas gasta el cupo en 3 recargas.
-// Cacheamos por repo 3h; si la API falla (403), reusamos la caché aunque esté vencida.
-const TTL = 3*3600*1e3;
-function cacheGet(repo){ try{ return JSON.parse(localStorage.getItem("gh:"+repo)); }catch{ return null; } }
-function cacheSet(repo,data){ try{ localStorage.setItem("gh:"+repo, JSON.stringify({t:Date.now(),data})); }catch{} }
-
-async function fetchRepo(p, since){
-  const [repoR, commitsR, lessonsR] = await Promise.all([
-    fetch(`https://api.github.com/repos/${USER}/${p.repo}`),
-    fetch(`https://api.github.com/repos/${USER}/${p.repo}/commits?since=${since}&per_page=100`),
-    fetch(`https://api.github.com/repos/${USER}/${p.repo}/contents/lessons`)
-  ]);
-  if(!repoR.ok) throw new Error(repoR.status);
-  const repo=await repoR.json();
-  const commits = commitsR.ok ? await commitsR.json() : [];
-  const lessons = lessonsR.ok ? await lessonsR.json() : [];
-  return {
-    pushed_at: repo.pushed_at,
-    commits: Array.isArray(commits)?commits.length:0,
-    done: Array.isArray(lessons) ? lessons.filter(f=>/^\d+.*\.html$/.test(f.name)).length : 0,
-  };
-}
-
-// stats.json lo genera una GitHub Action cada 6h (API autenticada, sin límite práctico).
-// Si existe lo usamos → 0 llamadas a la API en runtime. Si no, caemos a fetch en vivo + caché.
-async function loadStats(force){
-  let totalCommits=0, hottest={repo:"—",n:-1}, active=0;
-  const since=new Date(Date.now()-30*864e5).toISOString();
-  let precomputed=null;
-  if(!force){
-    try{ const r=await fetch("stats.json",{cache:"no-cache"}); if(r.ok) precomputed=(await r.json()).repos; }catch{}
-  }
-  await Promise.all(PROJECTS.map(async p=>{
-    const el=document.getElementById("st-"+p.repo);
-    const cached=cacheGet(p.repo);
-    let d, stale=false;
-    if(precomputed && precomputed[p.repo]){
-      d=precomputed[p.repo]; cacheSet(p.repo,d); // fuente de verdad: la Action
-    } else if(!force && cached && Date.now()-cached.t < TTL){
-      d=cached.data; // caché fresca: no gastamos cuota
-    } else {
-      try{ d=await fetchRepo(p,since); cacheSet(p.repo,d); }
-      catch(e){
-        if(cached){ d=cached.data; stale=true; }        // API falló → caché vieja
-        else{ el.innerHTML=`<span class="stale"><span class="dot" style="background:var(--red)"></span>sin datos (${e.message})</span>`; return; }
-      }
-    }
-    totalCommits+=d.commits; active++;
-    if(d.done>hottest.n) hottest={repo:p.name,n:d.done};
-    const pct=Math.min(100, Math.round(d.done / p.total * 100));
-    const a=ago(d.pushed_at);
-    el.innerHTML=`
-      <span class="${a.fresh?'fresh':'stale'}"><span class="dot" style="background:${a.fresh?'var(--acc)':'var(--warn)'}"></span>push ${a.t}</span>
-      <span><b>${d.commits}</b> commits/30d</span>
-      <span class="prog" title="${d.done}/${p.total} lecciones (${pct}%)${stale?' · caché':''}"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="pct">${d.done}/${p.total}</span></span>`;
-  }));
-  document.getElementById("s-total").textContent=active||PROJECTS.length;
-  document.getElementById("s-commits").textContent=totalCommits;
-  document.getElementById("s-streak").textContent=hottest.repo;
-}
-
-function tick(){
-  const d=new Date();
-  const up=Math.floor((Date.now()-+START)/864e5);
-  document.getElementById("s-days").textContent=up;
-  document.getElementById("clock").innerHTML=
-    `uptime <b>${up}d</b> · ${d.toLocaleTimeString('es',{hour12:false})} · ${d.toLocaleDateString('es')}`;
-}
-
-// 3 fuentes con CORS abierto. Cada una devuelve una lista; tomamos 1 item rotado por día.
-const FEEDS = [
-  {src:"Hacker News", url:"https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=30",
-   pick:d=>d.hits.filter(h=>h.title&&h.url).map(h=>({title:h.title,url:h.url,meta:`▲${h.points} · ${h.num_comments||0}💬`}))},
-  {src:"Dev.to", url:"https://dev.to/api/articles?top=1&per_page=30",
-   pick:d=>d.map(a=>({title:a.title,url:a.url,meta:`♥${a.positive_reactions_count} · ${a.reading_time_minutes}min`}))},
-  {src:"r/programming", url:"https://www.reddit.com/r/programming/top.json?t=day&limit=30",
-   pick:d=>d.data.children.map(c=>c.data).filter(p=>!p.stickied).map(p=>({title:p.title,url:"https://reddit.com"+p.permalink,meta:`▲${p.ups} · ${p.num_comments}💬`}))},
-];
-
-async function loadFeed(){
-  const ul=document.getElementById("feed");
-  const items=await Promise.all(FEEDS.map(async f=>{
-    try{
-      const r=await fetch(f.url); if(!r.ok) throw 0;
-      const list=f.pick(await r.json());
-      if(!list.length) throw 0;
-      const it=list[dayIndex()%list.length]; // rota por día, distinto item cada fuente
-      return `<li><span class="src">${f.src}</span>`+
-        `<a href="${it.url}" target="_blank" rel="noopener">${it.title}</a>`+
-        `<span class="meta">${it.meta}</span></li>`;
-    }catch{ return null; }
-  }));
-  const ok=items.filter(Boolean);
-  ul.innerHTML = ok.length
-    ? ok.join("")
-    : `<li><span class="src">offline</span>${facts[dayIndex()%facts.length]}</li>`; // fallback: dato geek local
-}
-loadFeed();
-setInterval(tick,1000); tick();
-loadStats();
-
-// prompt "ir a curso": teclea dígitos, Enter navega. Consistente con >9 cursos.
-let buf="";
-const goto=document.getElementById("goto"), gotoBuf=document.getElementById("goto-buf"), gotoName=document.getElementById("goto-name");
-function renderGoto(){
-  goto.style.display = buf ? "block" : "none";
-  gotoBuf.textContent = buf;
-  const p = PROJECTS[+buf-1];
-  gotoName.className = buf && !p ? "none" : "name";
-  gotoName.textContent = buf && p ? "→ "+p.name : (buf ? "✗ no existe" : "");
-}
+/* Editorial keyboard: number + Enter opens a course. */
+let edBuf="";
 addEventListener("keydown",e=>{
-  if(e.key>="0"&&e.key<="9"){ buf=(buf+e.key).slice(0,2); renderGoto(); return; }
-  if(e.key==="Backspace"){ buf=buf.slice(0,-1); renderGoto(); return; }
-  if(e.key==="Escape"){ buf=""; renderGoto(); return; }
-  if(e.key==="Enter"&&buf){ const c=document.querySelector(`.card[data-i="${+buf}"]`); if(c) location.href=c.href; buf=""; renderGoto(); return; }
-  if(e.key==="r"){document.querySelectorAll(".stats").forEach(s=>s.innerHTML='<span class="spin"><span class="dot"></span>refrescando…</span>');loadStats(true);}
+  if(matchMedia("(color)").matches) return; // terminal has its own handler
+  if(e.key>="0"&&e.key<="9"){ edBuf=(edBuf+e.key).slice(0,2); return; }
+  if(e.key==="Enter"&&edBuf){
+    const li=document.querySelectorAll(".ed .course")[+edBuf-1];
+    const a=li&&li.querySelector("h2 a"); if(a) location.href=a.href; edBuf="";
+  } else if(e.key==="Escape"){ edBuf=""; }
 });
+
+/* ---------- Terminal theme: only on color screens (skip fetches on e-ink) ---------- */
+if(matchMedia("(color)").matches){
+  const facts = [
+    "El bug del Mars Climate Orbiter (1999): perdieron una sonda de $327M por mezclar unidades métricas e imperiales.",
+    "La primera 'bug' real fue una polilla pegada a un relé del Harvard Mark II en 1947. Grace Hopper la pegó al log.",
+    "Un año-luz de código a 80 col: ~370 mil millones de líneas. Tu repo probablemente no llega.",
+    "El 'null' costó ~mil millones en fallos según Tony Hoare, que lo llamó su 'error de mil millones de dólares'.",
+    "git guarda todo por hash SHA-1: dos commits idénticos son literalmente el mismo objeto.",
+    "日本語 tiene 3 sistemas de escritura mezclados. Es como leer código en 3 lenguajes a la vez.",
+    "El primer programa 'Hello World' apareció en un tutorial de B en 1972, antes que C.",
+    "La complejidad ciclomática > 10 en una función = hora de refactorizar. O de rezar.",
+    "AEM EDS sirve HTML desde un Google Doc. La arquitectura más rara que amarás.",
+    "Un LLM no 'sabe' nada: predice el siguiente token. Como tú en un examen sin estudiar.",
+    "El caché tiene dos problemas difíciles: invalidación de caché, nombrar cosas, y errores off-by-one.",
+    "Regla de Kernighan: depurar es 2x más difícil que escribir el código. No escribas tu código al máximo de tu ingenio.",
+  ];
+  const grid = document.getElementById("grid");
+  PROJECTS.forEach((p,i)=>{
+    const a=document.createElement("a");
+    a.href=pagesUrl(p.repo); a.className="card"; a.dataset.i=i+1;
+    a.innerHTML=`
+      <span class="k">${i+1}</span>
+      <h2>${p.name}</h2>
+      <p>${p.desc}</p>
+      <div class="tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+      <div class="stats" id="st-${p.repo}">
+        <span class="spin"><span class="dot"></span>consultando GitHub…</span>
+      </div>`;
+    grid.appendChild(a);
+  });
+
+  const ago = d=>{
+    const days=Math.floor((Date.now()-+new Date(d))/864e5);
+    if(days<=0) return {t:"hoy", fresh:true};
+    if(days===1) return {t:"ayer", fresh:true};
+    if(days<7)  return {t:`${days}d`, fresh:true};
+    if(days<30) return {t:`${days}d`, fresh:false};
+    return {t:`${Math.floor(days/30)}mes`, fresh:false};
+  };
+
+  const TTL = 3*3600*1e3;
+  const cacheGet = repo=>{ try{ return JSON.parse(localStorage.getItem("gh:"+repo)); }catch{ return null; } };
+  const cacheSet = (repo,data)=>{ try{ localStorage.setItem("gh:"+repo, JSON.stringify({t:Date.now(),data})); }catch{} };
+
+  async function fetchRepo(p, since){
+    const [repoR, commitsR, lessonsR] = await Promise.all([
+      fetch(`https://api.github.com/repos/${USER}/${p.repo}`),
+      fetch(`https://api.github.com/repos/${USER}/${p.repo}/commits?since=${since}&per_page=100`),
+      fetch(`https://api.github.com/repos/${USER}/${p.repo}/contents/lessons`)
+    ]);
+    if(!repoR.ok) throw new Error(repoR.status);
+    const repo=await repoR.json();
+    const commits = commitsR.ok ? await commitsR.json() : [];
+    const lessons = lessonsR.ok ? await lessonsR.json() : [];
+    return {
+      pushed_at: repo.pushed_at,
+      commits: Array.isArray(commits)?commits.length:0,
+      done: Array.isArray(lessons) ? lessons.filter(f=>/^\d+.*\.html$/.test(f.name)).length : 0,
+    };
+  }
+
+  async function loadStats(force){
+    let totalCommits=0, hottest={repo:"—",n:-1}, active=0;
+    const since=new Date(Date.now()-30*864e5).toISOString();
+    let precomputed=null;
+    if(!force){
+      try{ const r=await fetch("stats.json",{cache:"no-cache"}); if(r.ok) precomputed=(await r.json()).repos; }catch{}
+    }
+    await Promise.all(PROJECTS.map(async p=>{
+      const el=document.getElementById("st-"+p.repo);
+      const cached=cacheGet(p.repo);
+      let d, stale=false;
+      if(precomputed && precomputed[p.repo]){
+        d=precomputed[p.repo]; cacheSet(p.repo,d);
+      } else if(!force && cached && Date.now()-cached.t < TTL){
+        d=cached.data;
+      } else {
+        try{ d=await fetchRepo(p,since); cacheSet(p.repo,d); }
+        catch(e){
+          if(cached){ d=cached.data; stale=true; }
+          else{ el.innerHTML=`<span class="stale"><span class="dot" style="background:#f85149"></span>sin datos (${e.message})</span>`; return; }
+        }
+      }
+      totalCommits+=d.commits; active++;
+      if(d.done>hottest.n) hottest={repo:p.name,n:d.done};
+      const pct=Math.min(100, Math.round(d.done / p.total * 100));
+      const a=ago(d.pushed_at);
+      el.innerHTML=`
+        <span class="${a.fresh?'fresh':'stale'}"><span class="dot" style="background:${a.fresh?'#39d353':'#e3b341'}"></span>push ${a.t}</span>
+        <span><b>${d.commits}</b> commits/30d</span>
+        <span class="prog" title="${d.done}/${p.total} lecciones (${pct}%)${stale?' · caché':''}"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="pct">${d.done}/${p.total}</span></span>`;
+    }));
+    document.getElementById("ts-total").textContent=active||PROJECTS.length;
+    document.getElementById("ts-commits").textContent=totalCommits;
+    document.getElementById("ts-streak").textContent=hottest.repo;
+  }
+
+  function tick(){
+    const d=new Date();
+    const up=Math.floor((Date.now()-+START)/864e5);
+    document.getElementById("ts-days").textContent=up;
+    document.getElementById("clock").innerHTML=
+      `uptime <b>${up}d</b> · ${d.toLocaleTimeString('es',{hour12:false})} · ${d.toLocaleDateString('es')}`;
+  }
+
+  const FEEDS = [
+    {src:"Hacker News", url:"https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=30",
+     pick:d=>d.hits.filter(h=>h.title&&h.url).map(h=>({title:h.title,url:h.url,meta:`▲${h.points} · ${h.num_comments||0}💬`}))},
+    {src:"Dev.to", url:"https://dev.to/api/articles?top=1&per_page=30",
+     pick:d=>d.map(a=>({title:a.title,url:a.url,meta:`♥${a.positive_reactions_count} · ${a.reading_time_minutes}min`}))},
+    {src:"r/programming", url:"https://www.reddit.com/r/programming/top.json?t=day&limit=30",
+     pick:d=>d.data.children.map(c=>c.data).filter(p=>!p.stickied).map(p=>({title:p.title,url:"https://reddit.com"+p.permalink,meta:`▲${p.ups} · ${p.num_comments}💬`}))},
+  ];
+  async function loadFeed(){
+    const ul=document.getElementById("feed");
+    const items=await Promise.all(FEEDS.map(async f=>{
+      try{
+        const r=await fetch(f.url); if(!r.ok) throw 0;
+        const list=f.pick(await r.json());
+        if(!list.length) throw 0;
+        const it=list[dayIndex()%list.length];
+        return `<li><span class="src">${f.src}</span>`+
+          `<a href="${it.url}" target="_blank" rel="noopener">${it.title}</a>`+
+          `<span class="meta">${it.meta}</span></li>`;
+      }catch{ return null; }
+    }));
+    const ok=items.filter(Boolean);
+    ul.innerHTML = ok.length ? ok.join("")
+      : `<li><span class="src">offline</span>${facts[dayIndex()%facts.length]}</li>`;
+  }
+  loadFeed();
+  setInterval(tick,1000); tick();
+  loadStats();
+
+  let buf="";
+  const goto=document.getElementById("goto"), gotoBuf=document.getElementById("goto-buf"), gotoName=document.getElementById("goto-name");
+  function renderGoto(){
+    goto.style.display = buf ? "block" : "none";
+    gotoBuf.textContent = buf;
+    const p = PROJECTS[+buf-1];
+    gotoName.className = buf && !p ? "none" : "name";
+    gotoName.textContent = buf && p ? "→ "+p.name : (buf ? "✗ no existe" : "");
+  }
+  addEventListener("keydown",e=>{
+    if(e.key>="0"&&e.key<="9"){ buf=(buf+e.key).slice(0,2); renderGoto(); return; }
+    if(e.key==="Backspace"){ buf=buf.slice(0,-1); renderGoto(); return; }
+    if(e.key==="Escape"){ buf=""; renderGoto(); return; }
+    if(e.key==="Enter"&&buf){ const c=document.querySelector(`.card[data-i="${+buf}"]`); if(c) location.href=c.href; buf=""; renderGoto(); return; }
+    if(e.key==="r"){document.querySelectorAll(".stats").forEach(s=>s.innerHTML='<span class="spin"><span class="dot"></span>refrescando…</span>');loadStats(true);}
+  });
+}
 </script>
 </body>
 </html>
