@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script>
+  /* Decide theme BEFORE paint. Editorial is the default (Kindle-safe, JS-off fallback).
+     Terminal only on real color screens that are NOT e-ink readers. @media (color) is
+     unreliable — Kindle's browser reports color:1 — so we gate on UA + color depth. */
+  (function(){
+    var ua = navigator.userAgent || "";
+    var eink = /Kindle|Silk|Kobo|reMarkable|PocketBook|Nook|EBRD/i.test(ua);
+    var color = (screen && screen.colorDepth > 8) || window.matchMedia("(color)").matches;
+    if(!eink && color) document.documentElement.className = "color";
+  })();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>~/learning — biblioteca de estudio</title>
@@ -8,10 +19,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  /* Two themes in one file. Editorial is the DEFAULT — it's the Kindle-safe, JS-off
-     fallback. The terminal theme is served only inside @media (color): color screens
-     (iOS/macOS/Windows) get it; e-ink (color bit-depth 0) never matches, so a Kindle
-     always lands on editorial even if detection or JS fails. */
+  /* Two themes in one file. Editorial is the DEFAULT — Kindle-safe, JS-off fallback.
+     The terminal theme applies only under html.color, a class the head script sets on
+     real color screens that are NOT e-ink readers (UA + colorDepth gated, since
+     @media (color) lies on Kindle). No class → editorial. */
   :root{
     --ink:#141414; --muted:#6a655e; --faint:#8f897f;
     --rule:#dcd8cf; --accent:#9c3818; --bg:#fbfaf7; --code-bg:#f1efe8;
@@ -91,61 +102,59 @@
     .course .prog .bar{margin:0 0 0 .6rem}
   }
 
-  /* ===== TERMINAL (color screens only) ===== */
-  @media (color){
-    .ed{display:none}
-    .tm{display:block}
-    html,body{margin:0;height:100%;max-width:none}
-    body{
-      background:#0b0e14; color:#c9d1d9;
-      font:14px/1.5 "JetBrains Mono","SFMono-Regular",ui-monospace,Consolas,monospace;
-      padding:24px; max-width:1100px; margin:0 auto;
-    }
-    .tm a{color:#58a6ff;text-decoration:none}
-    .tm header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;border-bottom:1px solid #1c2230;padding-bottom:12px}
-    .tm h1{font-size:18px;margin:0;color:#c9d1d9;font-family:inherit;font-weight:400;letter-spacing:0}
-    .tm h1 .c{color:#39d353}
-    .cursor{display:inline-block;width:9px;height:1.05em;background:#39d353;margin-left:4px;vertical-align:text-bottom;animation:blink 1s step-end infinite}
-    @keyframes blink{50%{opacity:0}}
-    .clock{color:#5c6b82;font-size:12px}
-    .clock b{color:#e3b341}
-    .bar{display:flex;gap:24px;flex-wrap:wrap;margin:16px 0;color:#5c6b82;font-size:12px}
-    .bar b{color:#39d353;font-size:16px}
-    .main{display:grid;grid-template-columns:1fr;gap:22px;align-items:start;margin-top:8px}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
-    .card{background:#11151f;border:1px solid #1c2230;border-radius:8px;padding:16px;position:relative;transition:.15s;cursor:pointer}
-    .card:hover{border-color:#58a6ff;transform:translateY(-2px)}
-    .card .k{position:absolute;top:12px;right:14px;color:#5c6b82;border:1px solid #1c2230;border-radius:4px;padding:1px 7px;font-size:11px}
-    .card h2{font-size:15px;margin:0 0 4px;color:#c9d1d9;font-family:inherit;font-weight:400}
-    .card p{margin:0 0 12px;color:#5c6b82;font-size:12.5px;min-height:34px}
-    .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-    .tag{font-size:11px;color:#39d353;background:#0d1f14;border:1px solid #1c3a26;padding:1px 8px;border-radius:20px}
-    .prog{display:inline-flex;align-items:center;gap:7px;margin-left:auto}
-    .prog .track{width:70px;height:6px;border-radius:3px;background:#0d1f14;border:1px solid #1c3a26;overflow:hidden}
-    .prog .fill{height:100%;background:#39d353;border-radius:3px 0 0 3px; display:block}
-    .prog .pct{color:#5c6b82;font-variant-numeric:tabular-nums}
-    .stats{display:flex;gap:16px;font-size:11.5px;color:#5c6b82;border-top:1px solid #1c2230;padding-top:10px}
-    .stats span b{color:#c9d1d9;font-weight:600}
-    .stats .fresh{color:#39d353} .stats .stale{color:#e3b341}
-    .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#5c6b82;margin-right:5px}
-    .fact{margin:22px 0 4px;padding:14px 16px;background:#11151f;border-left:3px solid #e3b341;border-radius:0 6px 6px 0;color:#c9d1d9;font-size:13px}
-    .fact .lbl{color:#e3b341;font-size:11px;letter-spacing:1px}
-    #feed{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
-    #feed li{display:flex;gap:10px;align-items:baseline}
-    #feed .src{color:#39d353;font-size:10.5px;min-width:82px;text-transform:uppercase;letter-spacing:.5px}
-    #feed a{color:#c9d1d9} #feed a:hover{color:#58a6ff}
-    #feed .meta{color:#5c6b82;font-size:11px;white-space:nowrap}
-    .tm footer{margin-top:28px;color:#5c6b82;font-size:11px;border-top:1px solid #1c2230;padding-top:12px}
-    .tm footer kbd{background:#1c2230;border-radius:3px;padding:1px 6px;color:#c9d1d9;font-family:inherit}
-    .spin{color:#5c6b82}
-    #goto{position:fixed;left:50%;top:28px;transform:translateX(-50%);z-index:10;display:none;
-      background:#11151f;border:1px solid #58a6ff;border-radius:8px;padding:12px 18px;
-      box-shadow:0 8px 30px #000a;font-size:16px;min-width:260px}
-    #goto .lbl{color:#5c6b82;font-size:11px;letter-spacing:1px;display:block;margin-bottom:4px}
-    #goto b{color:#39d353;font-size:20px}
-    #goto .name{color:#c9d1d9} #goto .none{color:#f85149}
-    @media(min-width:900px){.main{grid-template-columns:1fr 300px}.main .fact{position:sticky;top:24px;margin:0}}
+  /* ===== TERMINAL (html.color only) ===== */
+  html.color .ed{display:none}
+  html.color .tm{display:block}
+  html.color,html.color body{margin:0;height:100%}
+  html.color body{
+    background:#0b0e14; color:#c9d1d9;
+    font:14px/1.5 "JetBrains Mono","SFMono-Regular",ui-monospace,Consolas,monospace;
+    padding:24px; max-width:1100px; margin:0 auto;
   }
+  html.color .tm a{color:#58a6ff;text-decoration:none}
+  html.color .tm header{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;border-bottom:1px solid #1c2230;padding-bottom:12px}
+  html.color .tm h1{font-size:18px;margin:0;color:#c9d1d9;font-family:inherit;font-weight:400;letter-spacing:0}
+  html.color .tm h1 .c{color:#39d353}
+  html.color .cursor{display:inline-block;width:9px;height:1.05em;background:#39d353;margin-left:4px;vertical-align:text-bottom;animation:blink 1s step-end infinite}
+  @keyframes blink{50%{opacity:0}}
+  html.color .clock{color:#5c6b82;font-size:12px}
+  html.color .clock b{color:#e3b341}
+  html.color .bar{display:flex;gap:24px;flex-wrap:wrap;margin:16px 0;color:#5c6b82;font-size:12px}
+  html.color .bar b{color:#39d353;font-size:16px}
+  html.color .main{display:grid;grid-template-columns:1fr;gap:22px;align-items:start;margin-top:8px}
+  html.color .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  html.color .card{background:#11151f;border:1px solid #1c2230;border-radius:8px;padding:16px;position:relative;transition:.15s;cursor:pointer}
+  html.color .card:hover{border-color:#58a6ff;transform:translateY(-2px)}
+  html.color .card .k{position:absolute;top:12px;right:14px;color:#5c6b82;border:1px solid #1c2230;border-radius:4px;padding:1px 7px;font-size:11px}
+  html.color .card h2{font-size:15px;margin:0 0 4px;color:#c9d1d9;font-family:inherit;font-weight:400}
+  html.color .card p{margin:0 0 12px;color:#5c6b82;font-size:12.5px;min-height:34px}
+  html.color .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  html.color .tag{font-size:11px;color:#39d353;background:#0d1f14;border:1px solid #1c3a26;padding:1px 8px;border-radius:20px}
+  html.color .prog{display:inline-flex;align-items:center;gap:7px;margin-left:auto}
+  html.color .prog .track{width:70px;height:6px;border-radius:3px;background:#0d1f14;border:1px solid #1c3a26;overflow:hidden}
+  html.color .prog .fill{height:100%;background:#39d353;border-radius:3px 0 0 3px; display:block}
+  html.color .prog .pct{color:#5c6b82;font-variant-numeric:tabular-nums}
+  html.color .stats{display:flex;gap:16px;font-size:11.5px;color:#5c6b82;border-top:1px solid #1c2230;padding-top:10px}
+  html.color .stats span b{color:#c9d1d9;font-weight:600}
+  html.color .stats .fresh{color:#39d353} html.color .stats .stale{color:#e3b341}
+  html.color .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#5c6b82;margin-right:5px}
+  html.color .fact{margin:22px 0 4px;padding:14px 16px;background:#11151f;border-left:3px solid #e3b341;border-radius:0 6px 6px 0;color:#c9d1d9;font-size:13px}
+  html.color .fact .lbl{color:#e3b341;font-size:11px;letter-spacing:1px}
+  html.color #feed{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+  html.color #feed li{display:flex;gap:10px;align-items:baseline}
+  html.color #feed .src{color:#39d353;font-size:10.5px;min-width:82px;text-transform:uppercase;letter-spacing:.5px}
+  html.color #feed a{color:#c9d1d9} html.color #feed a:hover{color:#58a6ff}
+  html.color #feed .meta{color:#5c6b82;font-size:11px;white-space:nowrap}
+  html.color .tm footer{margin-top:28px;color:#5c6b82;font-size:11px;border-top:1px solid #1c2230;padding-top:12px}
+  html.color .tm footer kbd{background:#1c2230;border-radius:3px;padding:1px 6px;color:#c9d1d9;font-family:inherit}
+  html.color .spin{color:#5c6b82}
+  html.color #goto{position:fixed;left:50%;top:28px;transform:translateX(-50%);z-index:10;display:none;
+    background:#11151f;border:1px solid #58a6ff;border-radius:8px;padding:12px 18px;
+    box-shadow:0 8px 30px #000a;font-size:16px;min-width:260px}
+  html.color #goto .lbl{color:#5c6b82;font-size:11px;letter-spacing:1px;display:block;margin-bottom:4px}
+  html.color #goto b{color:#39d353;font-size:20px}
+  html.color #goto .name{color:#c9d1d9} html.color #goto .none{color:#f85149}
+  @media(min-width:900px){html.color .main{grid-template-columns:1fr 300px}html.color .main .fact{position:sticky;top:24px;margin:0}}
 </style>
 </head>
 <body>
@@ -335,7 +344,7 @@ Promise.all(ED_FEEDS.map(f=>fetch(f.url).then(r=>r.ok?r.json():null).then(d=>{
 /* Editorial keyboard: number + Enter opens a course. */
 let edBuf="";
 addEventListener("keydown",e=>{
-  if(matchMedia("(color)").matches) return; // terminal has its own handler
+  if(document.documentElement.classList.contains("color")) return; // terminal has its own handler
   if(e.key>="0"&&e.key<="9"){ edBuf=(edBuf+e.key).slice(0,2); return; }
   if(e.key==="Enter"&&edBuf){
     const li=document.querySelectorAll(".ed .course")[+edBuf-1];
@@ -343,8 +352,8 @@ addEventListener("keydown",e=>{
   } else if(e.key==="Escape"){ edBuf=""; }
 });
 
-/* ---------- Terminal theme: only on color screens (skip fetches on e-ink) ---------- */
-if(matchMedia("(color)").matches){
+/* ---------- Terminal theme: only when html.color set (skip fetches on e-ink) ---------- */
+if(document.documentElement.classList.contains("color")){
   const facts = [
     "El bug del Mars Climate Orbiter (1999): perdieron una sonda de $327M por mezclar unidades métricas e imperiales.",
     "La primera 'bug' real fue una polilla pegada a un relé del Harvard Mark II en 1947. Grace Hopper la pegó al log.",
