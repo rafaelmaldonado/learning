@@ -1,5 +1,5 @@
 {
-  "generated": "2026-07-28T13:27:00Z",
+  "generated": "2026-07-28T19:04:18Z",
   "repos": {
     "react-training": {"pushed_at":"2026-07-17T19:04:33Z","commits":7,"done":1},
     "aem-eds-training": {"pushed_at":"2026-07-27T18:19:10Z","commits":11,"done":7},
@@ -10,6 +10,7 @@
     "learn-aem-forms-backend": {"pushed_at":"2026-07-17T23:31:19Z","commits":1,"done":1},
     "learn-amazon-fba": {"pushed_at":"2026-07-18T01:54:09Z","commits":1,"done":1},
     "learn-aem-assets-professional": {"pushed_at":"2026-07-18T17:39:02Z","commits":1,"done":1},
-    "learn-ai-in-aem": {"pushed_at":"2026-07-20T13:36:01Z","commits":1,"done":2}
+    "learn-ai-in-aem": {"pushed_at":"2026-07-20T13:36:01Z","commits":1,"done":2},
+    "learn-photography": {"pushed_at":"2026-07-27T15:23:31Z","commits":1,"done":1}
   }
 }
