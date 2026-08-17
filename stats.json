@@ -1,5 +1,5 @@
 {
-  "generated": "2026-08-17T00:03:53Z",
+  "generated": "2026-08-17T06:07:02Z",
   "repos": {
     "react-training": {"pushed_at":"2026-07-17T19:04:33Z","commits":0,"done":1},
     "aem-eds-training": {"pushed_at":"2026-07-28T23:42:02Z","commits":7,"done":7},
@@ -8,7 +8,7 @@
     "claude-certified-architect": {"pushed_at":"2026-07-29T00:10:08Z","commits":2,"done":3},
     "learn-java-21-aem": {"pushed_at":"2026-07-17T18:48:19Z","commits":0,"done":2},
     "learn-aem-forms-backend": {"pushed_at":"2026-07-17T23:31:19Z","commits":0,"done":1},
-    "learn-amazon-fba": {"pushed_at":"2026-07-18T01:54:09Z","commits":1,"done":1},
+    "learn-amazon-fba": {"pushed_at":"2026-07-18T01:54:09Z","commits":0,"done":1},
     "learn-aem-assets-professional": {"pushed_at":"2026-07-18T17:39:02Z","commits":1,"done":1},
     "learn-ai-in-aem": {"pushed_at":"2026-07-20T13:36:01Z","commits":1,"done":2},
     "learn-photography": {"pushed_at":"2026-07-27T15:23:31Z","commits":1,"done":1}
